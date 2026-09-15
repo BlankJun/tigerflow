@@ -492,9 +492,9 @@ with tab_yukle:
 
           status_text.text("1/3 - PDF metin katmanları taranıyor...")
           progress_bar.progress(30)
-            for f in uploaded_files:
-            if not guvenli_pdf_mi(f):
-                st.stop()
+          for f in uploaded_files:
+              if not guvenli_pdf_mi(f):
+                  st.stop()
 
           file_payloads = [(f.name, f.read()) for f in uploaded_files]
           all_rows = []

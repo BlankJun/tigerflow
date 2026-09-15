@@ -17,6 +17,36 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+# --- GÜVENLİK KATMANI 1: İstek Sınırı (Rate Limiting) ---
+if "istek_gecmisi" not in st.session_state:
+    st.session_state.istek_gecmisi = []
+
+def hiz_siniri_kontrol(max_istek=20, pencere_saniye=60):
+    su_an = time.time()
+    st.session_state.istek_gecmisi = [
+        t for t in st.session_state.istek_gecmisi if su_an - t < pencere_saniye
+    ]
+    if len(st.session_state.istek_gecmisi) >= max_istek:
+        st.error("⚠️ Çok fazla işlem talebi gönderildi. Sistem güvenliği için lütfen 1 dakika bekleyin.")
+        st.stop()
+    st.session_state.istek_gecmisi.append(su_an)
+
+hiz_siniri_kontrol()
+
+
+# --- GÜVENLİK KATMANI 2: Dosya Doğrulama (Magic Byte & Boyut) ---
+def guvenli_pdf_mi(dosya) -> bool:
+    if dosya is None:
+        return False
+    if dosya.size > 200 * 1024 * 1024:
+        st.error(f"❌ '{dosya.name}' izin verilen boyutu (200MB) aşıyor.")
+        return False
+    baslik = dosya.read(5)
+    dosya.seek(0)
+    if baslik != b"%PDF-":
+        st.error(f"❌ '{dosya.name}' geçerli bir PDF dosyası değil!")
+        return False
+    return True
 
 # Yalın, gözü yormayan kurumsal koyu tema + Menü Gizleme
 st.markdown(
